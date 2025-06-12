@@ -24,7 +24,8 @@ STATUS = {
     "CRITICALLY": 50,
 }
 
-CURRENT_STATUS = STATUS["OK"]
+global current_status
+current_status = STATUS["OK"]
 
 
 def connect_db():
@@ -32,21 +33,23 @@ def connect_db():
 
 
 def validate(payload):
-    if payload["distance"] > STATUS["LOW"] and CURRENT_STATUS != STATUS["OK"]:
-        CURRENT_STATUS = STATUS["OK"]
+    global current_status
+
+    if payload["distance"] > STATUS["LOW"] and current_status != STATUS["OK"]:
+        current_status = STATUS["OK"]
         publish.single(PUB_TOPIC, "2000", hostname=SERVER)
         return
 
-    if payload["distance"] < STATUS["LOW"] and CURRENT_STATUS != CURRENT_STATUS["LOW"]:
-        CURRENT_STATUS = STATUS["LOW"]
+    if payload["distance"] < STATUS["LOW"] and current_status != STATUS["LOW"]:
+        current_status = STATUS["LOW"]
         publish.single(PUB_TOPIC, "1000", hostname=SERVER)
         return
 
     if (
         payload["distance"] < STATUS["CRITICALLY"]
-        and CURRENT_STATUS != STATUS["CRITICALLY"]
+        and current_status != STATUS["CRITICALLY"]
     ):
-        CURRENT_STATUS = STATUS["CRITICALLY"]
+        current_status = STATUS["CRITICALLY"]
 
         conn = connect_db()
         cursor = conn.cursor()
@@ -75,7 +78,13 @@ def save_to_database(message):
 
         timestamp = datetime.now()
 
-        payload = json.loads(str(message.payload.decode()))
+        json_string = message.payload.decode()
+
+        print(f"📥 Received message at {timestamp}: {json_string}")
+
+        payload = json.loads(json_string)
+
+        print(f"📊 Payload: {payload}")
 
         cursor.execute(
             """
