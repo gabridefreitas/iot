@@ -21,10 +21,10 @@ const int echoPin = 18;
 #define SPEED_TO_SOUND_CM 0.034
 
 // Configuração MQTT
-#define BROKER_MQTT = "broker.emqx.io";
-#define BROKER_PORT = 1883;  // Porta do Broker MQTT
-#define SUB_TOPIC = "sensor_delay"
-#define PUB_TOPIC = "water_level"
+#define BROKER_MQTT "broker.emqx.io"
+#define BROKER_PORT 1883
+#define SUB_TOPIC "sensor_delay"
+#define PUB_TOPIC "water_level"
 
 // id mqtt (para identificação de sessão) - TODO
 #define ID_MQTT "sensor"
@@ -32,8 +32,8 @@ const int echoPin = 18;
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 // Rede Wi-Fi
-#define SSID = "Wifi";
-#define PASSWORD = "";
+#define SSID "Wifi"
+#define PASSWORD ""
 
 // Variáveis e objetos globais
 
@@ -45,8 +45,6 @@ uint32_t globalDelay = 2000;
 unsigned long publishUpdate;
 long duration;
 float distanceCm;
-
-static char strDistanceCm[6] = {0};
 
 // Se já está conectado a rede WI-FI, nada é feito.
 // Caso contrário, são efetuadas tentativas de conexão
@@ -119,7 +117,9 @@ void reconnectMQTT(void) {
     Serial.print("* Tentando se conectar ao Broker MQTT: ");
     Serial.println(BROKER_MQTT);
 
-    if (MQTT.connect(ID_MQTT + WiFi.macAddress())) {
+    String clientId = ID_MQTT + WiFi.macAddress();
+
+    if (MQTT.connect(clientId.c_str())) {
       Serial.println("Conectado com sucesso ao broker MQTT!");
       MQTT.subscribe(SUB_TOPIC);
     } else {
@@ -141,12 +141,15 @@ void wifiLoop(float distance) {
   MQTT.loop();
 
   // Publica o valor lido no broker MQTT
-  sprintf(strDistanceCm, "%.2f", distance);
+  String str1 = "{\"distance\":";
+  String str2 = str1 + distance;
+  String str3 = str2 + ",\"id\":";
+  String str4 = str3 + "\"";
+  String str5 = str4 + WiFi.macAddress();
+  String str6 = str5 + "\"";
+  String payload = str6 + "}";
 
-  String strDistanceCm =
-      "{distance:" + strDistanceCm + ",id: " + WiFi.macAddress() + "}";
-
-  MQTT.publish(PUB_TOPIC, strDistanceCm);
+  MQTT.publish(PUB_TOPIC, payload.c_str());
 }
 
 void loop() {
