@@ -35,14 +35,20 @@ def connect_db():
 def validate(payload):
     global current_status
 
+    print("Current Status", current_status)
+
     if payload["distance"] > STATUS["LOW"] and current_status != STATUS["OK"]:
         current_status = STATUS["OK"]
-        publish.single(PUB_TOPIC, "2000", hostname=SERVER)
+        publish.single(PUB_TOPIC, "3000", hostname=SERVER)
         return
 
-    if payload["distance"] < STATUS["LOW"] and current_status != STATUS["LOW"]:
+    if (
+        payload["distance"] > STATUS["CRITICALLY"]
+        and payload["distance"] < STATUS["LOW"]
+        and current_status != STATUS["LOW"]
+    ):
         current_status = STATUS["LOW"]
-        publish.single(PUB_TOPIC, "1000", hostname=SERVER)
+        publish.single(PUB_TOPIC, "2000", hostname=SERVER)
         return
 
     if (
@@ -50,6 +56,7 @@ def validate(payload):
         and current_status != STATUS["CRITICALLY"]
     ):
         current_status = STATUS["CRITICALLY"]
+        publish.single(PUB_TOPIC, "1000", hostname=SERVER)
 
         conn = connect_db()
         cursor = conn.cursor()
