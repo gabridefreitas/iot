@@ -79,7 +79,8 @@
         {
           "editorMode": "builder",
           "format": "table",
-          "rawSql": "SELECT sensor_id, \"timestamp\", alert_type, value, message FROM alerts LIMIT 50 ",
+          "rawQuery": true,
+          "rawSql": "SELECT sensor_id, \"timestamp\", alert_type, value, message FROM alerts ORDER BY \"timestamp\" DESC LIMIT 200 ",
           "refId": "A",
           "sql": {
             "columns": [
@@ -137,7 +138,15 @@
                 "type": "groupBy"
               }
             ],
-            "limit": 50
+            "limit": 200,
+            "orderBy": {
+              "property": {
+                "name": ["\"timestamp\""],
+                "type": "string"
+              },
+              "type": "property"
+            },
+            "orderByDirection": "DESC"
           },
           "table": "alerts"
         }
@@ -295,12 +304,12 @@
     "list": []
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Water Level",
   "uid": "a5874dd9-efd3-4c5f-9254-a6ea3bcd403c",
-  "version": 8
+  "version": 10
 }
